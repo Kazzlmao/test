@@ -1,0 +1,159 @@
+-- -4058
+-- 103
+-- 254
+
+local RunService = game:GetService("RunService") 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local vu = game:GetService("VirtualUser")
+LocalPlayer.Idled:connect(function()
+   vu:Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+   wait(1)
+   vu:Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+end)
+
+local pos1 = nil
+local pos2 = nil
+local pos3 = nil
+
+local library, pointers = loadstring(game:HttpGet('https://hastebin.com/raw/geyezumira'))() do
+
+    local title_string = "Kaz's xp"
+
+    local window = library:New({name = title_string, size = Vector2.new(550, 610), Accent = Color3.fromRGB(100,61,200)})
+
+    local combat_page = window:Page({name = "main", size = 104}) do
+
+        local Balls = combat_page:Section({name = "main", side = "Left"}) do
+
+            Balls:Textbox(
+                {pointer = "settings/configuration/tpfunny1",
+                placeholder = "X Teleport Coordinates", 
+                text = "", 
+                middle = true, 
+                reset_on_focus = false,
+                callback = function(p_state)
+                    pos1 = p_state
+                    print(pos1)
+                end
+            })
+            Balls:Textbox(
+                {pointer = "settings/configuration/tpfunny2",
+                placeholder = "Y Teleport Coordinates", 
+                text = "", 
+                middle = true, 
+                reset_on_focus = false,
+                callback = function(p_state)
+                    pos2 = p_state
+                    print(pos2)
+                end
+            })
+            Balls:Textbox(
+                {pointer = "settings/configuration/tpfunny3",
+                placeholder = "Z Teleport Coordinates", 
+                text = "", 
+                middle = true, 
+                reset_on_focus = false,
+                callback = function(p_state)
+                    pos3 = p_state
+                    print(pos3)
+                end
+            })
+
+
+
+            Balls:Button({
+                name = "TP", 
+                confirmation = false,
+                callback = function()
+                    repeat wait() until LocalPlayer.Character
+                    RunService.RenderStepped:Connect(function()
+                    wait(1)
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos1,pos2,pos3)
+                    end)
+                end
+            }) 
+
+            Balls:Toggle({
+                pointer = "settings/menu/autopulloutfists", 
+                name = "auto pull fists", 
+                def = false, 
+            }) 
+
+            Balls:Toggle({
+                pointer = "settings/menu/autorespawn", 
+                name = "auto respawn", 
+                def = false, 
+            }) 
+
+            Balls:Toggle({
+                pointer = "settings/menu/staffdetect", 
+                name = "staff detect", 
+                def = false, 
+            }) 
+
+            Balls:Button({
+                confirmation = false,
+                name = "norender", 
+                callback = function()
+                    RunService:Set3dRenderingEnabled(false)
+                end
+            }) 
+
+            Balls:Keybind(
+                {pointer = "settings/menu/bind", name = "Bind", mode = "Toggle", default = Enum.KeyCode.RightShift, callback = function(p_state)
+                    window.uibind = p_state
+                end})
+
+        end
+
+    end
+
+   
+    repeat wait() until LocalPlayer.Character
+        RunService.RenderStepped:Connect(function()
+            for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                if v.name == "Fists" then
+                    if pointers["settings/menu/autopulloutfists"]:get() then
+                    task.wait(0.2)
+                    v.Parent = game.Players.LocalPlayer.Character
+                    task.wait(0.2)
+                    v.Parent = game.Players.LocalPlayer.Backpack
+                end
+            end
+        end
+    end)
+  
+
+    game:GetService("Players").LocalPlayer.PlayerGui.ChildAdded:Connect(function(Item)
+        if pointers["settings/menu/autorespawn"]:get() then
+            if Item.Name == "DeathGUI" then
+                repeat
+                    wait(0)
+                    game:GetService("ReplicatedStorage").Events.DeathRespawn:InvokeServer()
+                until game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("DeathGUI") == nil
+            end
+        end
+    end)
+    function CheckStaff(Player)
+        coroutine.resume(coroutine.create(function()
+            if Player:GetRankInGroup(4165692) > 1 then
+                if pointers["settings/menu/staffdetect"]:get() then
+                    game:GetService("Players").LocalPlayer:Kick("Staff Detected, " .. Player.Name)
+                end
+            end
+        end))
+    end
+    if pointers["settings/menu/staffdetect"]:get() then
+        for i, v in pairs(game:GetService("Players"):GetPlayers()) do
+            CheckStaff(v)
+        end
+    end
+    
+    game:GetService("Players").PlayerAdded:Connect(function(Player)
+        CheckStaff(Player)
+    end)
+
+    window.uibind = Enum.KeyCode.RightShift
+    window:Initialize()
+end
